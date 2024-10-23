@@ -1,0 +1,95 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.spatial import Delaunay
+
+# シェル構造の節点座標を定義
+nodes = np.array([
+    [0.0, 0.0],  # node 0
+    [1.0, 0.0],  # node 1
+    [1.0, 1.0],  # node 2
+    [0.0, 1.0],  # node 3
+    [0.5, 0.5]   # node 4 (center node)
+])
+
+# 要素（シェルの三角形メッシュ）をDelaunay三角分割で作成
+triangles = Delaunay(nodes).simplices
+
+# ヤング率とポアソン比を定義
+E = 210e9  # ヤング率（Pa）
+nu = 0.3   # ポアソン比
+
+# 要素ごとの剛性マトリックス計算
+def calculate_element_stiffness_matrix(E, nu, node_coords):
+    """2D三角形要素の平面応力状態の剛性マトリックスを計算"""
+    x1, y1 = node_coords[0]
+    x2, y2 = node_coords[1]
+    x3, y3 = node_coords[2]
+
+    # 三角形の面積
+    A = 0.5 * np.abs(x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2))
+
+    # 材料のコンスティチューションマトリックス
+    D = (E / (1 - nu**2)) * np.array([
+        [1, nu, 0],
+        [nu, 1, 0],
+        [0, 0, (1 - nu) / 2]
+    ])
+
+    # Bマトリックスの計算
+    B = np.array([
+        [y2 - y3, 0, y3 - y1, 0, y1 - y2, 0],
+        [0, x3 - x2, 0, x1 - x3, 0, x2 - x1],
+        [x3 - x2, y2 - y3, x1 - x3, y3 - y1, x2 - x1, y1 - y2]
+    ]) / (2 * A)
+
+    # 要素剛性マトリックスの計算
+    k = A * np.dot(np.dot(B.T, D), B)
+    return k
+
+# 全体剛性マトリックスを初期化
+num_nodes = nodes.shape[0]
+global_stiffness_matrix = np.zeros((2 * num_nodes, 2 * num_nodes))
+
+# 要素剛性マトリックスを全体剛性マトリックスに組み込む
+for element in triangles:
+    node_indices = element
+    element_coords = nodes[node_indices]
+
+    k = calculate_element_stiffness_matrix(E, nu, element_coords)
+
+    # 剛性マトリックスをグローバルにマップする
+    dof_map = np.array([2 * i for i in node_indices] + [2 * i + 1 for i in node_indices])
+    for i in range(6):
+        for j in range(6):
+            global_stiffness_matrix[dof_map[i], dof_map[j]] += k[i, j]
+
+# 境界条件の適用（固定境界）
+# 例: 節点0, 3を固定
+fixed_nodes = [0, 3]
+for node in fixed_nodes:
+    global_stiffness_matrix[2 * node, :] = 0
+    global_stiffness_matrix[:, 2 * node] = 0
+    global_stiffness_matrix[2 * node, 2 * node] = 1
+
+    global_stiffness_matrix[2 * node + 1, :] = 0
+    global_stiffness_matrix[:, 2 * node + 1] = 0
+    global_stiffness_matrix[2 * node + 1, 2 * node + 1] = 1
+
+# 荷重ベクトルの設定 (例: 節点2にy方向に1Nの荷重)
+load_vector = np.zeros(2 * num_nodes)
+load_vector[2 * 2 + 1] = -1.0
+
+# 変位を計算
+displacements = np.linalg.solve(global_stiffness_matrix, load_vector)
+
+# 結果を表示
+print("節点変位:")
+for i, node in enumerate(nodes):
+    print(f"Node {i}: {displacements[2 * i]:.5e}, {displacements[2 * i + 1]:.5e}")
+
+# 結果を可視化
+plt.triplot(nodes[:, 0], nodes[:, 1], triangles)
+plt.scatter(nodes[:, 0], nodes[:, 1], color='red')
+plt.title('2D Shell Structure')
+plt.gca().set_aspect('equal')
+plt.show()
