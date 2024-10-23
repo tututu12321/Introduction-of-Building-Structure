@@ -1,0 +1,29 @@
+from scipy.integrate import solve_bvp
+
+# 4階微分方程式の定義
+def beam_4th_order(x, w):
+    return [w[1], w[2], w[3], q(x) / (E * I)]
+
+# 分布荷重 q(x)
+def q(x):
+    return np.ones_like(x) * P  # 一様分布荷重とする
+
+# 境界条件（たわみと角度が固定）
+def bc(wa, wb):
+    return [wa[0], wa[1], wb[0], wb[1]]
+
+# xの範囲と初期値
+x_vals = np.linspace(0, L, 100)
+w_init = np.zeros((4, x_vals.size))
+
+# 4階の微分方程式を解く
+sol = solve_bvp(beam_4th_order, bc, x_vals, w_init)
+
+# 結果のプロット
+plt.plot(sol.x, sol.y[0], label="4th Order Deflection")
+plt.xlabel("Position (m)")
+plt.ylabel("Deflection (m)")
+plt.title("Deflection by 4th Order Differential Equation")
+plt.grid(True)
+plt.legend()
+plt.show()
