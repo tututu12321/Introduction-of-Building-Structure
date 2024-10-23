@@ -1,0 +1,55 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 材料特性と梁のパラメータ
+E = 210e9  # ヤング係数 (Pa)
+I = 1e-6   # 断面2次モーメント (m^4)
+L = 5      # 梁の長さ (m)
+P = 10000  # 集中荷重 (N)
+
+# 曲率を計算する関数 (曲率 = 1 / 曲率半径)
+def curvature(x, P, E, I, L):
+    M = -P * (L - x)  # 曲げモーメントM(x)の計算
+    return M / (E * I)  # 曲率κ = M / (EI)
+
+# 曲げモーメントを計算する関数
+def bending_moment(x, P, L):
+    return -P * (L - x)  # 曲げモーメントM(x)
+
+# 曲率半径を計算する関数 (ρ = EI / M)
+def curvature_radius(M, E, I):
+    return E * I / M
+
+# 梁の位置を分割
+x_vals = np.linspace(0, L, 100)
+
+# 曲げモーメント、曲率、曲率半径を計算
+moment_vals = bending_moment(x_vals, P, L)
+curvature_vals = curvature(x_vals, P, E, I, L)
+curvature_radius_vals = curvature_radius(moment_vals, E, I)
+
+# グラフのプロット
+plt.figure(figsize=(12, 6))
+
+# 曲げモーメント図のプロット
+plt.subplot(1, 2, 1)
+plt.plot(x_vals, moment_vals, label="Bending Moment (M)", color='blue')
+plt.axhline(0, color='black', linewidth=0.5)
+plt.xlabel("Position along the Beam (m)")
+plt.ylabel("Bending Moment (Nm)")
+plt.title("Bending Moment Diagram")
+plt.grid(True)
+plt.legend()
+
+# 曲率半径のプロット
+plt.subplot(1, 2, 2)
+plt.plot(x_vals, curvature_radius_vals, label="Curvature Radius (ρ)", color='green')
+plt.axhline(0, color='black', linewidth=0.5)
+plt.xlabel("Position along the Beam (m)")
+plt.ylabel("Curvature Radius (m)")
+plt.title("Curvature Radius Diagram")
+plt.grid(True)
+plt.legend()
+
+plt.tight_layout()
+plt.show()
