@@ -1,0 +1,67 @@
+import numpy as np
+
+# 1節: 不静定次数の計算
+def calculate_indeterminacy(r, j):
+    return r - 2 * j
+
+# 2節: 余力法
+def solve_redundant_forces(K, F):
+    return np.linalg.solve(K, F)
+
+# 3節: 三連モーメント法
+def three_moment_equation(L1, L2, M1, M2, M3, EI):
+    return M1 * L1 + 2 * M2 * (L1 + L2) + M3 * L2
+
+# 4節: たわみ角法
+def calculate_slope_and_moment(L, EI, M):
+    theta = M * L / EI
+    return theta
+
+def main():
+    print("不静定構造解析の手法を選んでください:")
+    print("1: 不静定次数の計算")
+    print("2: 余力法")
+    print("3: 三連モーメント法")
+    print("4: たわみ角法")
+
+    choice = int(input("選択肢: "))
+
+    if choice == 1:
+        # 不静定次数の計算
+        r = int(input("反力数を入力してください: "))
+        j = int(input("節点数を入力してください: "))
+        D = calculate_indeterminacy(r, j)
+        print(f"不静定次数: {D}")
+
+    elif choice == 2:
+        # 余力法の計算
+        print("剛性マトリクスを入力してください (例: 2x2行列 [[a, b], [c, d]]):")
+        K = np.array(eval(input("剛性マトリクス: ")))
+        F = np.array(eval(input("荷重ベクトル (例: [1000, 500]): ")))
+        redundant_forces = solve_redundant_forces(K, F)
+        print(f"余力（反力）: {redundant_forces}")
+
+    elif choice == 3:
+        # 三連モーメント法の計算
+        L1 = float(input("スパン1の長さを入力してください (m): "))
+        L2 = float(input("スパン2の長さを入力してください (m): "))
+        EI = float(input("EIの値を入力してください (Nm^2): "))
+        M1 = float(input("左端のモーメントを入力してください (Nm): "))
+        M2 = float(input("中央のモーメントを入力してください (Nm): "))
+        M3 = float(input("右端のモーメントを入力してください (Nm): "))
+        result = three_moment_equation(L1, L2, M1, M2, M3, EI)
+        print(f"三連モーメント法の結果: {result}")
+
+    elif choice == 4:
+        # たわみ角法の計算
+        L = float(input("梁の長さを入力してください (m): "))
+        EI = float(input("EIの値を入力してください (Nm^2): "))
+        M = float(input("モーメントを入力してください (Nm): "))
+        theta = calculate_slope_and_moment(L, EI, M)
+        print(f"たわみ角: {theta:.6f} rad")
+
+    else:
+        print("無効な選択肢です。")
+
+if __name__ == "__main__":
+    main()
