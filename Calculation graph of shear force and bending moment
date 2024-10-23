@@ -1,0 +1,103 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 梁の定義
+class Beam:
+    def __init__(self, length):
+        self.length = length  # 梁の長さ（メートル）
+        self.point_loads = []  # 点荷重のリスト（位置、力）
+        self.distributed_loads = []  # 分布荷重のリスト（開始位置、終了位置、強さ）
+
+    def add_point_load(self, position, force):
+        self.point_loads.append((position, force))
+
+    def add_distributed_load(self, start, end, intensity):
+        self.distributed_loads.append((start, end, intensity))
+
+    def calculate_reactions(self):
+        # 単純支持梁の場合、左端Aと右端Bの反力RAとRBを計算
+        # 縦方向の力の釣り合いとモーメントの釣り合いを使用
+        RA = 0
+        RB = 0
+        # 縦方向の力の釣り合い
+        RA = sum([force for pos, force in self.point_loads]) + sum([intensity * (end - start) for start, end, intensity in self.distributed_loads])
+        # モーメントの釣り合い（左端Aを基準）
+        moment = 0
+        for pos, force in self.point_loads:
+            moment += force * pos
+        for start, end, intensity in self.distributed_loads:
+            load = intensity * (end - start)
+            centroid = (start + end) / 2
+            moment += load * centroid
+        RB = moment / self.length
+        RA = (sum([force for pos, force in self.point_loads]) + sum([intensity * (end - start) for start, end, intensity in self.distributed_loads])) - RB
+        return RA, RB
+
+    def shear_force_bending_moment(self, num_points=1000):
+        x = np.linspace(0, self.length, num_points)
+        shear = np.zeros_like(x)
+        moment = np.zeros_like(x)
+        RA, RB = self.calculate_reactions()
+
+        for i, xi in enumerate(x):
+            shear[i] = RA
+            moment[i] = RA * xi
+            # 点荷重の影響
+            for pos, force in self.point_loads:
+                if xi >= pos:
+                    shear[i] -= force
+                    moment[i] -= force * (xi - pos)
+            # 分布荷重の影響
+            for start, end, intensity in self.distributed_loads:
+                if xi >= start:
+                    load_length = min(xi, end) - start
+                    shear[i] -= intensity * load_length
+                    moment[i] -= intensity * (load_length * (xi - start) - (load_length**2)/2)
+        return x, shear, moment
+
+# メイン実行部分
+def main():
+    # 梁の長さを定義（メートル）
+    beam_length = 10
+    beam = Beam(beam_length)
+
+    # 点荷重の追加（位置（メートル）、力（ニュートン））
+    beam.add_point_load(4, 5000)  # 4m地点に5kNの下向き荷重
+    beam.add_point_load(7, 3000)  # 7m地点に3kNの下向き荷重
+
+    # 分布荷重の追加（開始位置（メートル）、終了位置（メートル）、強さ（N/m））
+    beam.add_distributed_load(2, 5, 1000)  # 2m～5m地点に1kN/mの下向き分布荷重
+
+    # 反力の計算
+    RA, RB = beam.calculate_reactions()
+    print(f"左端反力 RA: {RA} N")
+    print(f"右端反力 RB: {RB} N")
+
+    # シアフォースとベンディングモーメントの計算
+    x, shear, moment = beam.shear_force_bending_moment()
+
+    # 図のプロット
+    fig, axs = plt.subplots(2, 1, figsize=(12, 8), sharex=True)
+
+    # シアフォースダイアグラム
+    axs[0].plot(x, shear, label="Shear Force", color='blue')
+    axs[0].axhline(0, color='black', linewidth=0.5)
+    axs[0].set_ylabel("Shear Force (N)")
+    axs[0].set_title("Shear Force Diagram")
+    axs[0].grid(True)
+    axs[0].legend()
+
+    # ベンディングモーメントダイアグラム
+    axs[1].plot(x, moment, label="Bending Moment", color='red')
+    axs[1].axhline(0, color='black', linewidth=0.5)
+    axs[1].set_xlabel("Position along Beam (m)")
+    axs[1].set_ylabel("Bending Moment (N·m)")
+    axs[1].set_title("Bending Moment Diagram")
+    axs[1].grid(True)
+    axs[1].legend()
+
+    plt.tight_layout()
+    plt.show()
+
+if __name__ == "__main__":
+    main()
