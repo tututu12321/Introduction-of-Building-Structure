@@ -1,0 +1,110 @@
+import numpy as np
+
+# 2Dトラス部材の剛性マトリクスを計算する関数
+def truss_element_stiffness(E, A, L, theta):
+    """
+    E: ヤング係数
+    A: 部材の断面積
+    L: 部材の長さ
+    theta: 部材の角度（ラジアン）
+    """
+    c = np.cos(theta)
+    s = np.sin(theta)
+    k = (E * A) / L
+    return k * np.array([[c**2, c*s, -c**2, -c*s],
+                         [c*s, s**2, -c*s, -s**2],
+                         [-c**2, -c*s, c**2, c*s],
+                         [-c*s, -s**2, c*s, s**2]])
+
+# 全体剛性マトリクスを組み立てる関数
+def assemble_global_stiffness(num_nodes, elements, node_coords, E, A):
+    num_dofs = 2 * num_nodes  # 各ノードは2つの自由度 (x, y)
+    K_global = np.zeros((num_dofs, num_dofs))
+
+    for element in elements:
+        node1, node2 = element
+        x1, y1 = node_coords[node1]
+        x2, y2 = node_coords[node2]
+        L = np.sqrt((x2 - x1)**2 + (y2 - y1)**2)  # 部材の長さ
+        theta = np.arctan2(y2 - y1, x2 - x1)  # 部材の角度
+        k_local = truss_element_stiffness(E, A, L, theta)
+
+        # グローバル剛性マトリクスへの組み込み
+        indices = [2 * node1, 2 * node1 + 1, 2 * node2, 2 * node2 + 1]
+        for i in range(4):
+            for j in range(4):
+                K_global[indices[i], indices[j]] += k_local[i, j]
+
+    return K_global
+
+# 荷重ベクトルを定義
+def define_load_vector(num_nodes, loads):
+    F = np.zeros(2 * num_nodes)
+    for node, (Fx, Fy) in loads.items():
+        F[2 * node] = Fx
+        F[2 * node + 1] = Fy
+    return F
+
+# 拘束条件を適用
+def apply_boundary_conditions(K_global, F, boundary_conditions):
+    """
+    boundary_conditions: 拘束された自由度のリスト（固定されたノードと方向）
+    例: [0, 1] はノード0のx方向とy方向の拘束を意味する
+    """
+    for dof in boundary_conditions:
+        K_global[dof, :] = 0
+        K_global[:, dof] = 0
+        K_global[dof, dof] = 1
+        F[dof] = 0
+    return K_global, F
+
+# メイン実行部分
+def main():
+    # ノード座標の定義 (節点の座標を2Dで指定)
+    node_coords = {
+        0: [0, 0],
+        1: [1, 0],
+        2: [1, 1],
+    }
+
+    # 部材の定義 (部材がどのノード間にあるかを指定)
+    elements = [
+        (0, 1),  # 部材1 (ノード0からノード1)
+        (1, 2),  # 部材2 (ノード1からノード2)
+        (0, 2),  # 部材3 (ノード0からノード2)
+    ]
+
+    # 材料特性と部材断面積
+    E = 210e9  # ヤング係数 (Pa)
+    A = 1e-4  # 断面積 (m^2)
+
+    # 荷重の定義 (ノード番号 -> [x方向の力, y方向の力])
+    loads = {
+        2: [0, -10000],  # ノード2に下向きの荷重10kN
+    }
+
+    # 拘束条件 (固定された自由度を指定)
+    boundary_conditions = [0, 1, 2, 3]  # ノード0のx, y方向とノード1のx, y方向を固定
+
+    # 剛性マトリクスの組み立て
+    num_nodes = len(node_coords)
+    K_global = assemble_global_stiffness(num_nodes, elements, node_coords, E, A)
+
+    # 荷重ベクトルの定義
+    F = define_load_vector(num_nodes, loads)
+
+    # 拘束条件の適用
+    K_global, F = apply_boundary_conditions(K_global, F, boundary_conditions)
+
+    # ノード変位の計算
+    displacements = np.linalg.solve(K_global, F)
+    print("ノード変位: ")
+    print(displacements)
+
+    # 各ノードの反力を計算
+    reactions = np.dot(K_global, displacements)
+    print("反力: ")
+    print(reactions)
+
+if __name__ == "__main__":
+    main()
