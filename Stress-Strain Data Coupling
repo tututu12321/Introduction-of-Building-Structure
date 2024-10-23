@@ -1,0 +1,31 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 材料特性
+E = 200e9  # ヤング率 (Pa), 例: 鉄鋼
+sigma_yield = 250e6  # 降伏応力 (Pa), 例: 鉄鋼の降伏点
+
+# ひずみ範囲の定義
+strain_elastic = np.linspace(0, sigma_yield / E, 100)  # 弾性範囲
+strain_plastic = np.linspace(sigma_yield / E, 0.01, 100)  # 塑性範囲
+
+# 応力の計算
+stress_elastic = E * strain_elastic  # フックの法則に基づく応力
+stress_plastic = np.ones_like(strain_plastic) * sigma_yield  # 降伏後の応力（簡略化して一定とする）
+
+# 応力-ひずみデータの結合
+strain = np.concatenate([strain_elastic, strain_plastic])
+stress = np.concatenate([stress_elastic, stress_plastic])
+
+# プロット
+plt.figure(figsize=(8, 6))
+plt.plot(strain, stress / 1e6, label="Stress-Strain Curve")  # MPa単位で表示
+plt.axhline(y=sigma_yield / 1e6, color='r', linestyle='--', label=f"Yield Stress ({sigma_yield/1e6} MPa)")
+
+# グラフの設定
+plt.title("Stress-Strain Curve with Yield Point")
+plt.xlabel("Strain (ε)")
+plt.ylabel("Stress (σ) [MPa]")
+plt.legend()
+plt.grid(True)
+plt.show()
