@@ -1,0 +1,33 @@
+import numpy as np
+
+# 梁の特性を定義
+E = 210e9  # ヤング係数 (Pa)
+I = 1e-6   # 断面二次モーメント (m^4)
+L = 5.0    # 梁の長さ (m)
+P = 1000   # 荷重 (N)
+
+# 梁の弾性エネルギー U を計算
+def elastic_energy(x, E, I, L, P):
+    # モーメント M(x) = P * (L/2 - x)
+    M = P * (L / 2 - x)
+    # 弾性エネルギー密度 dU/dx = M^2 / (2 * E * I)
+    return M**2 / (2 * E * I)
+
+# 全エネルギー U を数値積分で求める
+def total_energy(E, I, L, P):
+    x_vals = np.linspace(0, L, 1000)
+    U_vals = elastic_energy(x_vals, E, I, L, P)
+    # 弾性エネルギーを積分する
+    return np.trapz(U_vals, x_vals)
+
+# カスティリアノの定理を使って中央の変位を求める
+def castigliano_displacement(E, I, L, P):
+    # 弾性エネルギー U を P で微分
+    U_total = total_energy(E, I, L, P)
+    return U_total / P
+
+# 計算を実行
+displacement = castigliano_displacement(E, I, L, P)
+
+# 結果を表示
+print(f"中央の変位: {displacement:.6f} m")
