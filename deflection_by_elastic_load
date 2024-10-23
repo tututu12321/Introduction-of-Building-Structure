@@ -1,0 +1,16 @@
+# 弾性加重法を用いたたわみの計算
+
+# 弾性エネルギー
+def elastic_energy(P, L, E, I):
+    return (P**2 * L**3) / (3 * E * I)
+
+# たわみの計算
+def deflection_by_elastic_load(P, L, E, I):
+    return (P * L**3) / (48 * E * I)
+
+# 弾性エネルギーとたわみの計算
+energy = elastic_energy(P, L, E, I)
+deflection = deflection_by_elastic_load(P, L, E, I)
+
+print(f"Elastic Energy: {energy:.2f} J")
+print(f"Deflection: {deflection:.6f} m")
