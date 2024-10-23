@@ -1,0 +1,66 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.integrate import odeint
+from scipy.fft import fft, fftfreq
+
+# 地震波の生成（1次元形式）
+def generate_earthquake_wave(t):
+    # 単純な正弦波と高周波数成分の組み合わせでモデル化
+    return 0.2 * np.sin(2 * np.pi * 1.0 * t) + 0.1 * np.sin(2 * np.pi * 3.0 * t)
+
+# 単自由度系の運動方程式
+def sdof_system(y, t, omega_n, zeta, ground_accel, time):
+    u, v = y  # u: 変位, v: 速度
+    # 時刻 t における地震波の加速度値を線形補間で取得
+    ground_accel_t = np.interp(t, time, ground_accel)
+    du_dt = v
+    dv_dt = -(2 * zeta * omega_n * v) - (omega_n**2 * u) + ground_accel_t
+    return [du_dt, dv_dt]
+
+# 速度応答スペクトルの計算
+def response_spectrum_matrix(time, ground_accel, periods, zeta=0.05):
+    max_velocities = []
+    for T in periods:
+        omega_n = 2 * np.pi / T  # 固有角周波数
+        initial_conditions = [0.0, 0.0]  # 初期条件
+        # 運動方程式を解く際に地震波の加速度値を時間に応じて取得
+        solution = odeint(sdof_system, initial_conditions, time, args=(omega_n, zeta, ground_accel, time))
+        velocities = solution[:, 1]  # 速度成分
+        max_velocities.append(np.max(np.abs(velocities)))  # 最大速度応答
+    return np.array(max_velocities)
+
+# 時間の設定
+time = np.linspace(0, 20, 1000)  # 0から20秒まで、1000ステップ
+
+# 地震波の生成（1次元配列として）
+ground_accel = generate_earthquake_wave(time)
+
+# 周期範囲の設定（固有周期）
+periods = np.linspace(0.1, 4.0, 100)  # 固有周期 (0.1秒から4秒)
+
+# 速度応答スペクトルの計算
+response_spectra = response_spectrum_matrix(time, ground_accel, periods)
+
+# FFTを用いた地震波のスペクトル解析
+fft_accel = fft(ground_accel)
+fft_freqs = fftfreq(len(time), time[1] - time[0])
+
+# 地震波のスペクトルプロット
+plt.figure(figsize=(12, 6))
+plt.subplot(2, 1, 1)
+plt.plot(fft_freqs[:len(fft_freqs)//2], np.abs(fft_accel[:len(fft_accel)//2]))
+plt.title("Earthquake Wave Spectrum (FFT)")
+plt.xlabel("Frequency (Hz)")
+plt.ylabel("Amplitude")
+plt.grid(True)
+
+# 速度応答スペクトルのプロット
+plt.subplot(2, 1, 2)
+plt.plot(periods, response_spectra)
+plt.title("Velocity Response Spectrum")
+plt.xlabel("Period (s)")
+plt.ylabel("Max Velocity Response (m/s)")
+plt.grid(True)
+
+plt.tight_layout()
+plt.show()
