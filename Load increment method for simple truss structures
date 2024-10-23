@@ -1,0 +1,107 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Node coordinates (x, y)
+nodes = np.array([
+    [0.0, 0.0],  # node 0
+    [1.0, 0.0],  # node 1
+    [0.5, 1.0],  # node 2
+])
+
+# Connectivity between nodes for each element
+elements = np.array([
+    [0, 2],  # element 0
+    [1, 2],  # element 1
+    [0, 1],  # element 2
+])
+
+# Material properties and cross-sectional area
+E = 210e9  # Young's modulus (Pa)
+A = 0.01   # Cross-sectional area (m^2)
+
+# Boundary conditions (fixed nodes)
+fixed_nodes = [0, 1]
+
+# Load (incrementally applied to node 2 in the y-direction)
+load_increment = np.array([0.0, -1000.0])  # Load increment (N)
+increments = 10  # Number of load steps
+
+# Calculate element stiffness matrix
+def element_stiffness_matrix(E, A, node1, node2):
+    """Compute stiffness matrix for an element."""
+    x1, y1 = node1
+    x2, y2 = node2
+    L = np.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+    c = (x2 - x1) / L
+    s = (y2 - y1) / L
+    k = (E * A / L) * np.array([
+        [c*c, c*s, -c*c, -c*s],
+        [c*s, s*s, -c*s, -s*s],
+        [-c*c, -c*s, c*c, c*s],
+        [-c*s, -s*s, c*s, s*s]
+    ])
+    return k
+
+# Assemble the global stiffness matrix
+def global_stiffness_matrix(E, A, nodes, elements):
+    K_global = np.zeros((2 * len(nodes), 2 * len(nodes)))
+    for element in elements:
+        n1, n2 = element
+        k = element_stiffness_matrix(E, A, nodes[n1], nodes[n2])
+        index_map = [2 * n1, 2 * n1 + 1, 2 * n2, 2 * n2 + 1]
+        for i in range(4):
+            for j in range(4):
+                K_global[index_map[i], index_map[j]] += k[i, j]
+    return K_global
+
+# Apply boundary conditions (fixed nodes)
+def apply_boundary_conditions(K_global, fixed_nodes):
+    for node in fixed_nodes:
+        K_global[2 * node, :] = 0
+        K_global[:, 2 * node] = 0
+        K_global[2 * node + 1, :] = 0
+        K_global[:, 2 * node + 1] = 0
+        K_global[2 * node, 2 * node] = 1
+        K_global[2 * node + 1, 2 * node + 1] = 1
+    return K_global
+
+# Create load vector with increments
+def load_vector(increments, load_increment):
+    F_total = np.zeros((2 * len(nodes), increments))
+    for i in range(increments):
+        F_total[4, i] = load_increment[1] * (i + 1)  # Apply load at node 2 (y-direction)
+    return F_total
+
+# Solve for displacements
+def solve_displacements(K_global, F_total, increments):
+    displacements = np.zeros((2 * len(nodes), increments))
+    for i in range(increments):
+        displacements[:, i] = np.linalg.solve(K_global, F_total[:, i])
+    return displacements
+
+# Assemble global stiffness matrix
+K_global = global_stiffness_matrix(E, A, nodes, elements)
+K_global = apply_boundary_conditions(K_global, fixed_nodes)
+
+# Create load vector
+F_total = load_vector(increments, load_increment)
+
+# Solve for displacements
+displacements = solve_displacements(K_global, F_total, increments)
+
+# Display the results
+for i in range(increments):
+    print(f"Load Step {i + 1}:")
+    print("Node Displacements:")
+    for j in range(len(nodes)):
+        print(f"Node {j}: {displacements[2 * j, i]:.6e}, {displacements[2 * j + 1, i]:.6e}")
+
+# Plot the displacement of Node 2 (y-direction) as load increases
+plt.figure()
+plt.plot(np.arange(1, increments + 1), displacements[5, :], marker='o', label='Node 2 (y-direction)')
+plt.xlabel('Load Step')
+plt.ylabel('Displacement (m)')
+plt.title('Displacement of Node 2 (y-direction) as Load Increases')
+plt.legend()
+plt.grid(True)
+plt.show()
