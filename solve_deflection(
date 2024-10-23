@@ -1,0 +1,29 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 梁の特性
+E = 210e9  # ヤング係数 (Pa)
+I = 1e-6   # 断面二次モーメント (m^4)
+L = 10     # 梁の長さ (m)
+P = 1000   # 荷重 (N)
+
+# 曲げモーメント M(x)
+def M(x, L, P):
+    return P * (L/2 - x)
+
+# たわみの微分方程式を解く
+def solve_deflection(E, I, L, P):
+    x_vals = np.linspace(0, L, 1000)
+    M_vals = M(x_vals, L, P)
+    w_vals = np.cumsum(np.cumsum(M_vals / (E * I)))  # 二重積分でたわみを計算
+    return x_vals, w_vals
+
+# 結果のプロット
+x, w = solve_deflection(E, I, L, P)
+plt.plot(x, w, label="Deflection")
+plt.xlabel("Position (m)")
+plt.ylabel("Deflection (m)")
+plt.title("Beam Deflection")
+plt.grid(True)
+plt.legend()
+plt.show()
