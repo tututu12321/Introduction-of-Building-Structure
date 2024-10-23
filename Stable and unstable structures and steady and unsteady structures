@@ -1,0 +1,44 @@
+def check_stability(r, j):
+    """
+    構造物が安定か不安定かを判定する。
+    安定: r >= 2 * j
+    不安定: r < 2 * j
+    """
+    if r >= 2 * j:
+        return "安定な構造物です。"
+    else:
+        return "不安定な構造物です。"
+
+def check_determinacy(r, j):
+    """
+    構造物が静定か不静定かを判定する。
+    静定: r - 2 * j == 0
+    不静定: r - 2 * j > 0
+    不安定: r - 2 * j < 0
+    """
+    D = r - 2 * j
+    if D == 0:
+        return "静定構造です。"
+    elif D > 0:
+        return f"不静定構造です。 不静定次数: {D}"
+    else:
+        return "不安定構造です。"
+
+def main():
+    """
+    メイン関数。反力数と節点数を入力し、構造物の安定性と静定性を判定する。
+    """
+    # 反力数と節点数を入力
+    r = int(input("反力数を入力してください: "))
+    j = int(input("節点数を入力してください: "))
+
+    # 安定・不安定の確認
+    stability = check_stability(r, j)
+    print(stability)
+
+    # 静定・不静定の確認
+    determinacy = check_determinacy(r, j)
+    print(determinacy)
+
+if __name__ == "__main__":
+    main()
