@@ -1,0 +1,21 @@
+from scipy.integrate import odeint
+
+# 2階微分方程式の定義
+def beam_eq(w, x, E, I, P, L):
+    return [w[1], M(x, L, P) / (E * I)]
+
+# 初期条件（たわみと角度がゼロの状態）
+w0 = [0, 0]
+
+# たわみを数値的に解く
+x_vals = np.linspace(0, L, 100)
+w_vals = odeint(beam_eq, w0, x_vals, args=(E, I, P, L))
+
+# 結果のプロット
+plt.plot(x_vals, w_vals[:, 0], label="2nd Order Deflection")
+plt.xlabel("Position (m)")
+plt.ylabel("Deflection (m)")
+plt.title("Deflection by 2nd Order Differential Equation")
+plt.grid(True)
+plt.legend()
+plt.show()
