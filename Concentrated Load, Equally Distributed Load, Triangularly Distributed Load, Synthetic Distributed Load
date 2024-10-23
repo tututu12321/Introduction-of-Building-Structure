@@ -1,0 +1,67 @@
+import numpy as np
+
+# 定数の定義
+L = 5.0   # 梁の長さ (m)
+E = 210e9  # ヤング係数 (Pa)
+I = 8.33e-6  # 断面二次モーメント (m^4)
+
+# 1. 集中荷重 (単純梁)
+def calc_concentrated_load(P, L, E, I):
+    # 最大モーメント
+    M_max = (P * L) / 4
+    # 最大たわみ
+    delta_max = (P * L**3) / (48 * E * I)
+    return M_max, delta_max
+
+# 2. 均等分布荷重 (単純梁)
+def calc_uniform_load(w, L, E, I):
+    # 最大モーメント
+    M_max = (w * L**2) / 8
+    # 最大たわみ
+    delta_max = (5 * w * L**4) / (384 * E * I)
+    return M_max, delta_max
+
+# 3. 三角形分布荷重 (単純梁)
+def calc_triangle_load(w, L, E, I):
+    # 最大モーメント
+    M_max = (w * L**2) / 9
+    # 最大たわみ
+    delta_max = (w * L**4) / (30 * E * I)
+    return M_max, delta_max
+
+# 4. 合成分布荷重 (単純梁)
+def calc_combined_load(w, L, E, I):
+    # 最大モーメント（合成分布）
+    M_max = (w * L**2) / 8
+    # 最大たわみ（合成分布）
+    delta_max = (5 * w * L**4) / (384 * E * I)
+    return M_max, delta_max
+
+# 荷重の設定
+P = 10.0  # 集中荷重 (N)
+w_uniform = 2.0  # 均等分布荷重 (N/m)
+w_triangle = 2.0  # 三角形分布荷重 (N/m)
+w_combined = 2.0  # 合成分布荷重 (N/m)
+
+# 各荷重条件での結果を計算
+M_concentrated, delta_concentrated = calc_concentrated_load(P, L, E, I)
+M_uniform, delta_uniform = calc_uniform_load(w_uniform, L, E, I)
+M_triangle, delta_triangle = calc_triangle_load(w_triangle, L, E, I)
+M_combined, delta_combined = calc_combined_load(w_combined, L, E, I)
+
+# 結果の表示
+print("集中荷重の場合:")
+print(f"最大モーメント: {M_concentrated:.2f} Nm")
+print(f"最大たわみ: {delta_concentrated:.6f} m\n")
+
+print("均等分布荷重の場合:")
+print(f"最大モーメント: {M_uniform:.2f} Nm")
+print(f"最大たわみ: {delta_uniform:.6f} m\n")
+
+print("三角形分布荷重の場合:")
+print(f"最大モーメント: {M_triangle:.2f} Nm")
+print(f"最大たわみ: {delta_triangle:.6f} m\n")
+
+print("合成分布荷重の場合:")
+print(f"最大モーメント: {M_combined:.2f} Nm")
+print(f"最大たわみ: {delta_combined:.6f} m\n")
