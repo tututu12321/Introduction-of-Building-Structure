@@ -1,0 +1,51 @@
+import numpy as np
+
+# 座屈荷重の計算
+def buckling_load(E, I, L, K=1.0):
+    """
+    座屈荷重を計算します（オイラーの式に基づく）
+    Calculate buckling load (P_cr) based on Euler's formula
+    E: ヤング率（Pa）
+    I: 断面二次モーメント（m^4）
+    L: 柱の長さ（m）
+    K: 座屈長係数（デフォルトは1.0、つまりピン支持）
+    """
+    return (np.pi**2 * E * I) / (K * L)**2
+
+# 細長比の計算
+def slenderness_ratio(L, r_g):
+    """
+    細長比を計算します
+    Calculate slenderness ratio (λ)
+    L: 柱の長さ（m）
+    r_g: 断面2次半径（m）
+    """
+    return L / r_g
+
+# 断面2次半径の計算
+def radius_of_gyration(I, A):
+    """
+    断面2次半径を計算します
+    Calculate radius of gyration (r_g)
+    I: 断面二次モーメント（m^4）
+    A: 断面積（m^2）
+    """
+    return np.sqrt(I / A)
+
+# サンプルデータ
+E = 200e9  # ヤング率（Pa, 例: 鉄鋼のヤング率）
+I = 1e-6  # 断面二次モーメント（m^4）
+L = 2.0  # 柱の長さ（m）
+A = 0.005  # 断面積（m^2）
+
+# 断面2次半径の計算
+r_g = radius_of_gyration(I, A)
+print(f"断面2次半径 (r_g): {r_g} m")
+
+# 細長比の計算
+lambda_sr = slenderness_ratio(L, r_g)
+print(f"細長比 (λ): {lambda_sr}")
+
+# 座屈荷重の計算（ピン支持の場合 K=1）
+P_cr = buckling_load(E, I, L, K=1.0)
+print(f"座屈荷重 (P_cr): {P_cr} N")
