@@ -1,0 +1,23 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 剛性 k (N/m)
+k = 50000  # 剛性を一定にする
+
+# 質量の範囲（kg）
+mass = np.linspace(1000, 100000, 500)  # 1000kgから100000kgまでの範囲
+
+# 固有振動周期 T = 2 * pi * sqrt(m / k)
+period = 2 * np.pi * np.sqrt(mass / k)
+
+# 質量と固有振動周期の関係をプロット
+plt.figure(figsize=(8, 6))
+plt.plot(mass, period, label='Natural Period', color='b')
+
+# プロットのラベルとタイトル
+plt.xlabel('Mass (kg)', fontsize=12)
+plt.ylabel('Natural Period (s)', fontsize=12)
+plt.title('Natural Period vs. Mass of Building', fontsize=14)
+plt.grid(True)
+plt.legend()
+plt.show()
