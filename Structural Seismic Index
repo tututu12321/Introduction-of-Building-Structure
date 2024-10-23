@@ -1,0 +1,24 @@
+# 必要な定数とパラメータを定義
+Eoi = 200000  # 鉄骨のヤング率 (MPa)
+Festi = 467.8  # 各接点の曲げ耐力 (kN*m)
+Z = 1.5  # 断面係数（仮定）
+Ri = 1.0  # 剛性比（仮定）
+Wi = 1000  # 重量 (kN)
+Ai = 50  # 面積 (m^2)
+Fi = 300  # 各階の水平力 (kN)
+RAi = 1.0  # 座屈補正係数（仮定）
+Qi = 250  # 各階の耐力 (kN)
+q = 0.25  # 保有水平耐力に係る指標 (仮定)
+
+# 構造耐震指標 Ish の計算
+def calculate_Ish(Eoi, Festi, Z, Ri, Wi, Ai, Fi, RAi, Qi, q):
+    Ish = (Eoi / Festi) * Z * Ri
+    q_value = (Qi * Fi) / (0.25 * Festi * Wi * Z * RAi)
+    return Ish, q_value
+
+# 計算
+Ish, q_value = calculate_Ish(Eoi, Festi, Z, Ri, Wi, Ai, Fi, RAi, Qi, q)
+
+# 結果の表示
+print(f"構造耐震指標 Ish: {Ish:.2f}")
+print(f"保有水平耐力に係る指標 q: {q_value:.2f}")
