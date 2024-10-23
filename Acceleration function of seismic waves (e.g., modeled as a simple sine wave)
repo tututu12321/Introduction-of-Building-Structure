@@ -1,0 +1,55 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.integrate import odeint
+
+# 定数の設定
+M = 1000  # 質量 (kg)
+C = 100   # 減衰係数 (Ns/m)
+K = 50000  # 剛性 (N/m)
+
+# 地震波の加速度関数（例: 単純な正弦波でモデル化）
+def earthquake_accel(t):
+    return 0.1 * np.sin(2 * np.pi * 1.0 * t)  # 地震波の加速度 (m/s^2)
+
+# 運動方程式の定義
+def equation_of_motion(y, t, M, C, K):
+    u, v = y  # u: 変位, v: 速度
+    du_dt = v
+    dv_dt = -(C/M)*v - (K/M)*u + earthquake_accel(t)
+    return [du_dt, dv_dt]
+
+# 初期条件
+u0 = 0.0  # 初期変位 (m)
+v0 = 0.0  # 初期速度 (m/s)
+initial_conditions = [u0, v0]
+
+# 時間の定義
+t = np.linspace(0, 10, 1000)  # 0から10秒までの1000ステップ
+
+# 微分方程式を解く
+solution = odeint(equation_of_motion, initial_conditions, t, args=(M, C, K))
+
+# 結果を分解
+displacement = solution[:, 0]
+velocity = solution[:, 1]
+
+# グラフの描画
+plt.figure(figsize=(10, 6))
+
+# 変位のプロット
+plt.subplot(2, 1, 1)
+plt.plot(t, displacement, label="Displacement (m)")
+plt.title("Time History Response Analysis")
+plt.xlabel("Time (s)")
+plt.ylabel("Displacement (m)")
+plt.grid(True)
+
+# 地震波加速度のプロット
+plt.subplot(2, 1, 2)
+plt.plot(t, earthquake_accel(t), label="Earthquake Acceleration (m/s²)", color='r')
+plt.xlabel("Time (s)")
+plt.ylabel("Acceleration (m/s²)")
+plt.grid(True)
+
+plt.tight_layout()
+plt.show()
