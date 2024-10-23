@@ -1,0 +1,51 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 単純支持梁の長さを設定
+L = 10  # 梁の長さ (m)
+
+# 影響線を計算する関数 (反力の影響線)
+def influence_line_support(L, x):
+    return (L - x) / L
+
+# 影響線を計算する関数 (曲げモーメントの影響線)
+def influence_line_moment(L, a, x):
+    moment = np.zeros_like(x)
+    for i in range(len(x)):
+        if x[i] <= a:
+            moment[i] = (x[i] * (L - a)) / L
+        else:
+            moment[i] = (a * (L - x[i])) / L
+    return moment
+
+# x方向の位置を分割して定義
+x = np.linspace(0, L, 100)
+
+# 支点での反力の影響線 (単純支持梁の左端支点)
+support_influence = influence_line_support(L, x)
+
+# 特定の位置 a での曲げモーメントの影響線 (例えば、中央)
+a = L / 2  # 中央の位置
+moment_influence = influence_line_moment(L, a, x)
+
+# 影響線をプロット
+plt.figure(figsize=(10, 6))
+
+# 反力の影響線を描画
+plt.subplot(2, 1, 1)
+plt.plot(x, support_influence, label=f'Support Reaction Influence at x=0')
+plt.title('Influence Line for Support Reaction and Moment')
+plt.ylabel('Support Reaction Influence')
+plt.grid(True)
+plt.legend()
+
+# 曲げモーメントの影響線を描画
+plt.subplot(2, 1, 2)
+plt.plot(x, moment_influence, label=f'Moment Influence at a={a}', color='r')
+plt.xlabel('Position on Beam (m)')
+plt.ylabel('Moment Influence')
+plt.grid(True)
+plt.legend()
+
+plt.tight_layout()
+plt.show()
