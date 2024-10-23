@@ -1,0 +1,141 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# トラスの基本パラメータ
+E = 210e9  # ヤング率 (Pa)
+A = 0.01  # 断面積 (m^2)
+
+# 節点座標 (x, y)
+nodes = np.array([
+    [0, 0],  # Node 1
+    [2, 0],  # Node 2
+    [4, 0],  # Node 3
+    [2, 3]   # Node 4
+])
+
+# エレメント接続 (節点のペア: Node i -> Node j)
+elements = np.array([
+    [0, 1],  # Element 1: Node 1 -> Node 2
+    [1, 2],  # Element 2: Node 2 -> Node 3
+    [0, 3],  # Element 3: Node 1 -> Node 4
+    [1, 3],  # Element 4: Node 2 -> Node 4
+    [2, 3]   # Element 5: Node 3 -> Node 4
+])
+
+# 境界条件 (固定節点)
+fixed_nodes = [0, 2]  # 節点 1 と 3 は固定
+
+# 荷重条件 (節点ごとの荷重 [Fx, Fy])
+forces = np.zeros((4, 2))  # 節点ごとの荷重ベクトル
+forces[1, :] = [10000, 0]  # 節点 2 に水平荷重 10000 N
+forces[3, :] = [0, -50000]  # 節点 4 に鉛直荷重 -50000 N
+
+# エレメント剛性行列の計算
+def element_stiffness_matrix(E, A, node_i, node_j):
+    xi, yi = node_i
+    xj, yj = node_j
+    L = np.sqrt((xj - xi)**2 + (yj - yi)**2)  # エレメントの長さ
+    c = (xj - xi) / L  # cosθ
+    s = (yj - yi) / L  # sinθ
+    
+    k = E * A / L * np.array([
+        [ c**2,  c*s, -c**2, -c*s],
+        [ c*s,  s**2, -c*s, -s**2],
+        [-c**2, -c*s,  c**2,  c*s],
+        [-c*s, -s**2,  c*s,  s**2]
+    ])
+    
+    return k
+
+# グローバル剛性行列の構築
+num_nodes = nodes.shape[0]
+K_global = np.zeros((num_nodes * 2, num_nodes * 2))  # グローバル剛性行列
+
+# 各エレメントに対する剛性行列をグローバル剛性行列に足し込む
+for element in elements:
+    i, j = element
+    k = element_stiffness_matrix(E, A, nodes[i], nodes[j])
+    
+    # グローバル行列へのマッピング
+    indices = np.array([2 * i, 2 * i + 1, 2 * j, 2 * j + 1])
+    for ii in range(4):
+        for jj in range(4):
+            K_global[indices[ii], indices[jj]] += k[ii, jj]
+
+# 境界条件の適用（固定節点の変位をゼロに設定）
+for node in fixed_nodes:
+    K_global[2 * node, :] = 0
+    K_global[2 * node + 1, :] = 0
+    K_global[:, 2 * node] = 0
+    K_global[:, 2 * node + 1] = 0
+    K_global[2 * node, 2 * node] = 1
+    K_global[2 * node + 1, 2 * node + 1] = 1
+
+# 荷重ベクトルの準備
+F = forces.flatten()
+
+# グローバル剛性行列を解いて節点変位を求める
+displacements = np.linalg.solve(K_global, F)
+
+# 各エレメントの軸力の計算
+def calculate_element_force(E, A, node_i, node_j, displacement_i, displacement_j):
+    xi, yi = node_i
+    xj, yj = node_j
+    L = np.sqrt((xj - xi)**2 + (yj - yi)**2)  # エレメントの長さ
+    c = (xj - xi) / L  # cosθ
+    s = (yj - yi) / L  # sinθ
+    
+    # ローカル変位ベクトル
+    u_local = np.array([
+        displacement_i[0], displacement_i[1],
+        displacement_j[0], displacement_j[1]
+    ])
+    
+    # 軸方向変位（ローカル座標系）
+    strain = np.array([-c, -s, c, s])
+    
+    # 軸力 = E * A / L * (ローカル座標系での軸方向変位)
+    force = (E * A / L) * np.dot(strain, u_local)
+    
+    return force
+
+# エレメント軸力の計算
+element_forces = []
+for element in elements:
+    i, j = element
+    displacement_i = displacements[2 * i:2 * i + 2]
+    displacement_j = displacements[2 * j:2 * j + 2]
+    force = calculate_element_force(E, A, nodes[i], nodes[j], displacement_i, displacement_j)
+    element_forces.append(force)
+
+# 結果の表示
+print("節点変位:")
+for i in range(num_nodes):
+    print(f"Node {i+1}: Ux = {displacements[2*i]:.6f} m, Uy = {displacements[2*i+1]:.6f} m")
+
+print("\nエレメント軸力:")
+for idx, force in enumerate(element_forces):
+    print(f"Element {idx+1}: Force = {force:.2f} N")
+
+# トラスの描画
+def plot_truss(nodes, elements, displacements, scale=1000):
+    plt.figure(figsize=(8, 6))
+    for element in elements:
+        i, j = element
+        x_coords = [nodes[i, 0], nodes[j, 0]]
+        y_coords = [nodes[i, 1], nodes[j, 1]]
+        plt.plot(x_coords, y_coords, 'b-', lw=2)
+
+        # 変位を考慮した新しい位置
+        x_coords_disp = [nodes[i, 0] + displacements[2 * i] * scale, 
+                         nodes[j, 0] + displacements[2 * j] * scale]
+        y_coords_disp = [nodes[i, 1] + displacements[2 * i + 1] * scale, 
+                         nodes[j, 1] + displacements[2 * j + 1] * scale]
+        plt.plot(x_coords_disp, y_coords_disp, 'r--', lw=2)
+
+    plt.grid(True)
+    plt.title("Truss Deformation (scaled)")
+    plt.show()
+
+# トラスの変形をプロット
+plot_truss(nodes, elements, displacements)
