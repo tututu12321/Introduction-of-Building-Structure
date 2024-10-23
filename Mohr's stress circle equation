@@ -1,0 +1,62 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# モールの応力円の計算
+def mohr_circle(sigma_x, sigma_y, tau_xy):
+    # モールの応力円の中心
+    center = (sigma_x + sigma_y) / 2
+    
+    # 半径の計算
+    radius = np.sqrt(((sigma_x - sigma_y) / 2) ** 2 + tau_xy ** 2)
+    
+    # 主応力度の計算
+    sigma_1 = center + radius  # 最大主応力度
+    sigma_2 = center - radius  # 最小主応力度
+    
+    # 最大せん断応力度
+    tau_max = radius
+    
+    return center, radius, sigma_1, sigma_2, tau_max
+
+# モールの応力円を描画する関数
+def plot_mohr_circle(center, radius):
+    fig, ax = plt.subplots(figsize=(6,6))
+    
+    # θ角度 (0から360度) を使って円を描画
+    theta = np.linspace(0, 2 * np.pi, 100)
+    x = center + radius * np.cos(theta)
+    y = radius * np.sin(theta)
+    
+    # モールの応力円を描画
+    ax.plot(x, y, label="Mohr's Circle")
+    
+    # 軸に対する線
+    ax.axhline(0, color='black',linewidth=0.5)
+    ax.axvline(center, color='black',linewidth=0.5, linestyle="--", label="Center")
+    
+    # グラフの設定
+    ax.set_aspect('equal')
+    ax.set_xlabel("Normal Stress (σ)")
+    ax.set_ylabel("Shear Stress (τ)")
+    ax.legend()
+    plt.title("Mohr's Circle")
+    plt.grid(True)
+    plt.show()
+
+# サンプルデータ
+sigma_x = 50  # x方向の法線応力
+sigma_y = 20  # y方向の法線応力
+tau_xy = 30   # xy平面のせん断応力
+
+# モールの応力円の計算
+center, radius, sigma_1, sigma_2, tau_max = mohr_circle(sigma_x, sigma_y, tau_xy)
+
+# 結果の表示
+print(f"Center of Mohr's Circle: {center}")
+print(f"Radius of Mohr's Circle: {radius}")
+print(f"Principal Stress 1 (σ1): {sigma_1}")
+print(f"Principal Stress 2 (σ2): {sigma_2}")
+print(f"Maximum Shear Stress (τmax): {tau_max}")
+
+# モールの応力円のプロット
+plot_mohr_circle(center, radius)
