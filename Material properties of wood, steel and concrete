@@ -1,0 +1,44 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 材料特性の定義
+materials = ['Wood', 'Steel', 'Concrete']
+
+# ヤング係数 (N/mm^2)
+E_wood = np.mean([8e3, 14e3])
+E_steel = 2.05e5
+E_concrete = 2.1e4
+E_values = [E_wood, E_steel, E_concrete]
+
+# ポアソン比
+nu_wood = np.mean([0.40, 0.62])
+nu_steel = 0.3
+nu_concrete = 0.2
+nu_values = [nu_wood, nu_steel, nu_concrete]
+
+# 線膨張係数 (1/°C)
+alpha_wood = 0.5e-5
+alpha_steel = 1.2e-5
+alpha_concrete = 1.0e-5
+alpha_values = [alpha_wood, alpha_steel, alpha_concrete]
+
+# ヤング係数のプロット
+plt.figure(figsize=(10, 6))
+plt.bar(materials, E_values, color=['green', 'blue', 'gray'])
+plt.title('Elastic Modulus (Young\'s Modulus) of Materials')
+plt.ylabel('Elastic Modulus (N/mm^2)')
+plt.show()
+
+# ポアソン比のプロット
+plt.figure(figsize=(10, 6))
+plt.bar(materials, nu_values, color=['green', 'blue', 'gray'])
+plt.title('Poisson\'s Ratio of Materials')
+plt.ylabel('Poisson\'s Ratio')
+plt.show()
+
+# 線膨張係数のプロット
+plt.figure(figsize=(10, 6))
+plt.bar(materials, alpha_values, color=['green', 'blue', 'gray'])
+plt.title('Thermal Expansion Coefficient of Materials')
+plt.ylabel('Thermal Expansion Coefficient (1/°C)')
+plt.show()
