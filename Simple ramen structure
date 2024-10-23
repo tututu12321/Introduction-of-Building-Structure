@@ -1,0 +1,95 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 節点クラス
+class Node:
+    def __init__(self, x, y, boundary_condition):
+        self.x = x
+        self.y = y
+        self.boundary_condition = boundary_condition
+        self.displacement = np.zeros(2)  # 2自由度 (x方向とy方向)
+
+# 梁クラス
+class Beam:
+    def __init__(self, node1, node2):
+        self.node1 = node1
+        self.node2 = node2
+
+# モデルクラス
+class SimpleFrameModel:
+    def __init__(self):
+        self.nodes = []
+        self.beams = []
+
+    def add_node(self, node):
+        self.nodes.append(node)
+
+    def add_beam(self, beam):
+        self.beams.append(beam)
+
+# ソルバークラス（仮の変位設定）
+class SimpleSolver:
+    def __init__(self, model):
+        self.model = model
+
+    def solve(self):
+        # 仮の変位を節点に与える
+        for node in self.model.nodes:
+            if node.boundary_condition == "free":
+                node.displacement = np.array([0.1, -0.05])  # 仮の変位
+
+# 可視化クラス
+class SimpleViewer:
+    def __init__(self, model):
+        self.model = model
+
+    def plot_results(self):
+        fig, ax = plt.subplots()
+        for beam in self.model.beams:
+            # 変形前の構造を描画
+            x_original = [beam.node1.x, beam.node2.x]
+            y_original = [beam.node1.y, beam.node2.y]
+            ax.plot(x_original, y_original, 'b-', label="Original")
+
+            # 変形後の構造を描画
+            x_deformed = [beam.node1.x + beam.node1.displacement[0], beam.node2.x + beam.node2.displacement[0]]
+            y_deformed = [beam.node1.y + beam.node1.displacement[1], beam.node2.y + beam.node2.displacement[1]]
+            ax.plot(x_deformed, y_deformed, 'r-', label="Deformed")
+
+        plt.xlabel('X')
+        plt.ylabel('Y')
+        plt.title('Simple Frame Deformation')
+        plt.grid(True)
+        plt.show()
+
+# メイン実行部分
+if __name__ == "__main__":
+    # モデルの初期化
+    model = SimpleFrameModel()
+
+    # サンプルの節点と梁を追加
+    node1 = Node(0, 0, boundary_condition="fixed")  # 固定端
+    node2 = Node(5, 0, boundary_condition="fixed")  # 固定端
+    node3 = Node(5, 3, boundary_condition="free")   # 自由端
+    node4 = Node(0, 3, boundary_condition="free")   # 自由端
+
+    model.add_node(node1)
+    model.add_node(node2)
+    model.add_node(node3)
+    model.add_node(node4)
+
+    # 梁要素を追加
+    beam1 = Beam(node1, node4)
+    beam2 = Beam(node2, node3)
+    beam3 = Beam(node3, node4)
+    model.add_beam(beam1)
+    model.add_beam(beam2)
+    model.add_beam(beam3)
+
+    # 解析の実行
+    solver = SimpleSolver(model)
+    solver.solve()
+
+    # 結果の可視化
+    viewer = SimpleViewer(model)
+    viewer.plot_results()
