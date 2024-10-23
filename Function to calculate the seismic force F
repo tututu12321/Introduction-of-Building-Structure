@@ -1,0 +1,24 @@
+# 定数定義
+gravity_acceleration = 9.8  # 重力加速度 [m/s^2]
+
+# 関数定義
+def calculate_seismic_force(max_acceleration, weight):
+    """
+    地震力 F を計算する関数
+    :param max_acceleration: 地震の最大加速度 [m/s^2]
+    :param weight: 建物の自重 [N]
+    :return: 水平荷重（地震力） [N]
+    """
+    k = max_acceleration / gravity_acceleration  # 係数kの計算
+    F = k * weight  # 水平荷重（地震力）の計算
+    return F
+
+# 入力値
+max_acceleration = 7.5  # 例: 地震の最大加速度 [m/s^2]
+weight = 10000  # 例: 建物の自重 [N]
+
+# 地震力の計算
+seismic_force = calculate_seismic_force(max_acceleration, weight)
+
+# 結果の表示
+print(f"地震力 F: {seismic_force} N")
