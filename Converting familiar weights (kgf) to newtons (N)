@@ -1,0 +1,38 @@
+# kgf to N conversion factor
+kgf_to_N = 9.8
+
+# 身近な重さ (kgf) をニュートン (N) に変換
+def convert_kgf_to_newton(kgf):
+    return kgf * kgf_to_N
+
+# 身近な重さの例
+human_weight_kgf = 60  # 人の体重
+car_weight_kgf = 1000  # 車1台
+scooter_weight_kgf = 100  # スクーター
+water_10l_weight_kgf = 10  # 水10リットル
+
+# 重さの計算
+human_weight_newton = convert_kgf_to_newton(human_weight_kgf)
+car_weight_newton = convert_kgf_to_newton(car_weight_kgf)
+scooter_weight_newton = convert_kgf_to_newton(scooter_weight_kgf)
+water_10l_weight_newton = convert_kgf_to_newton(water_10l_weight_kgf)
+
+# 結果の表示
+print(f"Human weight: {human_weight_newton} N")
+print(f"Car weight: {car_weight_newton} N")
+print(f"Scooter weight: {scooter_weight_newton} N")
+print(f"Water (10L) weight: {water_10l_weight_newton} N")
+
+# 建築材料の重さ（kgf/m²）をニュートン (N/m²) に変換
+roof_weight_kgf_m2 = 100  # 瓦葺き
+wall_weight_kgf_m2 = 65.3  # 鉄網モルタル
+floor_weight_kgf_m2 = 34.7  # 畳敷き
+
+roof_weight_newton_m2 = convert_kgf_to_newton(roof_weight_kgf_m2)
+wall_weight_newton_m2 = convert_kgf_to_newton(wall_weight_kgf_m2)
+floor_weight_newton_m2 = convert_kgf_to_newton(floor_weight_kgf_m2)
+
+# 建築材料の重さの結果表示
+print(f"Roof weight: {roof_weight_newton_m2} N/m²")
+print(f"Wall weight: {wall_weight_newton_m2} N/m²")
+print(f"Floor weight: {floor_weight_newton_m2} N/m²")
