@@ -1,0 +1,34 @@
+import math
+
+# 断面の寸法 (例: 幅B=10, 高さH=20)
+B = 10  # 幅
+H = 20  # 高さ
+h = 15  # 断面の小さい寸法 (断面2次半径用)
+
+# 断面積の計算
+def calculate_area(B, H):
+    return B * H
+
+# 断面係数の計算
+def calculate_section_modulus(B, H):
+    return (1/6) * B * H**2
+
+# 断面2次モーメントの計算
+def calculate_moment_of_inertia(B, H):
+    return (1/12) * B * H**3
+
+# 断面2次半径の計算
+def calculate_radius_of_gyration(h):
+    return h / math.sqrt(12)
+
+# 計算
+area = calculate_area(B, H)
+section_modulus = calculate_section_modulus(B, H)
+moment_of_inertia = calculate_moment_of_inertia(B, H)
+radius_of_gyration = calculate_radius_of_gyration(h)
+
+# 結果の表示
+print(f"断面積: {area} mm^2")
+print(f"断面係数: {section_modulus} mm^3")
+print(f"断面2次モーメント: {moment_of_inertia} mm^4")
+print(f"断面2次半径: {radius_of_gyration} mm")
