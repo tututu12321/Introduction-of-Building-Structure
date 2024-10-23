@@ -1,0 +1,66 @@
+import numpy as np
+
+# 軸応力 (Axial Stress)
+def axial_stress(P, A):
+    """
+    軸応力を計算します
+    Calculate axial stress (σ)
+    P: 軸力 (Axial force, N)
+    A: 断面積 (Cross-sectional area, m^2)
+    """
+    return P / A
+
+# せん断応力 (Shear Stress)
+def shear_stress(V, A):
+    """
+    せん断応力を計算します
+    Calculate shear stress (τ)
+    V: せん断力 (Shear force, N)
+    A: 断面積 (Cross-sectional area, m^2)
+    """
+    return V / A
+
+# 曲げ応力 (Bending Stress)
+def bending_stress(M, y, I):
+    """
+    曲げ応力を計算します
+    Calculate bending stress (σ_bending)
+    M: 曲げモーメント (Bending moment, Nm)
+    y: 中立軸からの距離 (Distance from neutral axis, m)
+    I: 断面二次モーメント (Moment of inertia, m^4)
+    """
+    return (M * y) / I
+
+# ねじり応力 (Torsional Stress)
+def torsional_stress(T, r, J):
+    """
+    ねじり応力を計算します
+    Calculate torsional stress (τ_torsion)
+    T: ねじりモーメント (Torsional moment, Nm)
+    r: 断面の半径 (Radius of cross-section, m)
+    J: 極断面二次モーメント (Polar moment of inertia, m^4)
+    """
+    return (T * r) / J
+
+# 例のデータ (Sample Data)
+P = 10000  # 軸力 (N)
+V = 5000   # せん断力 (N)
+M = 2000   # 曲げモーメント (Nm)
+T = 1500   # ねじりモーメント (Nm)
+A = 0.01   # 断面積 (m^2)
+y = 0.05   # 中立軸からの距離 (m)
+I = 1e-6   # 断面二次モーメント (m^4)
+r = 0.02   # 半径 (m)
+J = 1e-6   # 極断面二次モーメント (m^4)
+
+# 計算 (Calculations)
+sigma_axial = axial_stress(P, A)
+tau_shear = shear_stress(V, A)
+sigma_bending = bending_stress(M, y, I)
+tau_torsion = torsional_stress(T, r, J)
+
+# 結果の表示 (Display results)
+print(f"Axial Stress: {sigma_axial} Pa")
+print(f"Shear Stress: {tau_shear} Pa")
+print(f"Bending Stress: {sigma_bending} Pa")
+print(f"Torsional Stress: {tau_torsion} Pa")
