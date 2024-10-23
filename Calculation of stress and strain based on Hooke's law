@@ -1,0 +1,49 @@
+# フックの法則に基づく応力・ひずみの計算
+
+# 応力度 σ (Stress), 弾性係数 E (Elastic Modulus), ひずみ ε (Strain) の関係式
+
+# 弾性係数 (E), 応力度 (σ), ひずみ (ε) を求める関数
+def calculate_stress(E, strain):
+    """
+    フックの法則に基づいて応力度 (σ) を計算します
+    Calculate stress (σ) based on Hooke's Law
+    E: 弾性係数 (Pa) / Elastic modulus (Pa)
+    strain: ひずみ / Strain (unitless)
+    """
+    return E * strain
+
+def calculate_strain(stress, E):
+    """
+    フックの法則に基づいてひずみ (ε) を計算します
+    Calculate strain (ε) based on Hooke's Law
+    stress: 応力度 (Pa) / Stress (Pa)
+    E: 弾性係数 (Pa) / Elastic modulus (Pa)
+    """
+    return stress / E
+
+def calculate_elastic_modulus(stress, strain):
+    """
+    フックの法則に基づいて弾性係数 (E) を計算します
+    Calculate elastic modulus (E) based on Hooke's Law
+    stress: 応力度 (Pa) / Stress (Pa)
+    strain: ひずみ / Strain (unitless)
+    """
+    return stress / strain
+
+# サンプルデータ
+elastic_modulus = 200e9  # 弾性係数 (Pa), 例: 鉄鋼のヤング率 / Example: Young's modulus of steel (200 GPa)
+strain = 0.001  # ひずみ / Strain
+stress = calculate_stress(elastic_modulus, strain)  # 応力度の計算
+
+# 結果の表示
+print(f"Given Elastic Modulus (E): {elastic_modulus} Pa")
+print(f"Given Strain (ε): {strain}")
+print(f"Calculated Stress (σ): {stress} Pa")
+
+# 応力度を使ってひずみを再計算
+strain_calculated = calculate_strain(stress, elastic_modulus)
+print(f"Re-calculated Strain (ε): {strain_calculated}")
+
+# 応力度とひずみから弾性係数を再計算
+elastic_modulus_calculated = calculate_elastic_modulus(stress, strain)
+print(f"Re-calculated Elastic Modulus (E): {elastic_modulus_calculated} Pa")
