@@ -1,0 +1,38 @@
+import numpy as np
+
+# 材料強度の定義
+f_ck = 24  # コンクリートの設計基準強度（N/mm^2）
+f_y = 400  # 鉄筋の降伏強度（N/mm^2）
+
+# 鉄筋断面積
+A_s = 1000  # 鉄筋の断面積（mm^2）
+
+# コンクリートの断面寸法
+b = 300  # 梁の幅（mm）
+d = 500  # 効果的高さ（鉄筋から圧縮縁までの距離、mm）
+
+# コンクリートの設計基準強度による応力度の計算
+alpha_1 = 0.85  # 応力度ブロック係数
+gamma_b = 1.1  # コンクリートの材料安全係数
+
+# 鉄筋の降伏強度による応力度の計算
+gamma_s = 1.15  # 鉄筋の材料安全係数
+
+# 曲げモーメントの耐力計算
+def calc_moment_capacity(f_ck, f_y, A_s, b, d, alpha_1, gamma_b, gamma_s):
+    f_cd = f_ck / gamma_b  # コンクリートの設計基準強度
+    f_yd = f_y / gamma_s  # 鉄筋の設計基準強度
+    
+    # 曲げモーメント耐力の計算
+    x = A_s * f_yd / (alpha_1 * f_cd * b)  # 圧縮縁から中性軸までの距離
+    if x > d:  # 圧縮破壊を防ぐためのチェック
+        raise ValueError("圧縮破壊の可能性があります。設計を見直してください。")
+
+    M_n = A_s * f_yd * (d - 0.5 * x)  # 曲げモーメント耐力
+    return M_n
+
+# 計算実行
+moment_capacity = calc_moment_capacity(f_ck, f_y, A_s, b, d, alpha_1, gamma_b, gamma_s)
+
+# 結果表示
+print(f"鉄筋コンクリート梁の曲げモーメント耐力: {moment_capacity / 1e6:.2f} kNm")
