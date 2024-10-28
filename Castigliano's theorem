@@ -1,0 +1,69 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.integrate import quad
+
+# --- 1. Define beam and load parameters ---
+E = 210e9  # Young's modulus in Pascals (Pa) for steel
+I = 8.33e-6  # Moment of inertia in m^4
+L = 2.0  # Length of the beam in meters
+P = 1000.0  # Applied point load in Newtons (N)
+
+# --- 2. Define the bending moment function M(x) ---
+# For a simply supported beam with a point load at the center:
+# M(x) = P * (L/2 - x) for 0 <= x <= L/2
+# M(x) = P * (x - L/2) for L/2 <= x <= L
+
+def bending_moment(x):
+    """ Bending moment M(x) for a simply supported beam with point load P at the center. """
+    if 0 <= x <= L / 2:
+        return P * (L / 2 - x)
+    elif L / 2 < x <= L:
+        return P * (x - L / 2)
+    else:
+        return 0
+
+# --- 3. Calculate the strain energy U ---
+def strain_energy(x):
+    """ Strain energy density dU for the beam. """
+    Mx = bending_moment(x)
+    return Mx**2 / (2 * E * I)
+
+# Integrate to find the total strain energy U over the length of the beam
+U, _ = quad(strain_energy, 0, L)
+print(f"Total strain energy U: {U:.6f} Joules")
+
+# --- 4. Apply Castigliano's theorem to find displacement ---
+# δ = ∂U/∂P, but in this simple case, U is already a function of P linearly, so:
+def displacement(P):
+    """ Calculate displacement at the load point using Castigliano's theorem. """
+    return quad(lambda x: bending_moment(x) * (L / 2 - x) / (E * I), 0, L/2)[0] * 2
+
+delta = displacement(P)
+print(f"Displacement at the center of the beam: {delta:.6f} meters")
+
+# --- 5. Plot the bending moment and deflection ---
+x_values = np.linspace(0, L, 100)
+moment_values = [bending_moment(x) for x in x_values]
+deflection_values = [displacement(P) * (2*x/L) if x <= L/2 else displacement(P) * (2*(L - x)/L) for x in x_values]
+
+plt.figure(figsize=(10, 6))
+
+# Plot bending moment
+plt.subplot(2, 1, 1)
+plt.plot(x_values, moment_values, label='Bending Moment M(x)', color='blue')
+plt.title('Bending Moment and Deflection of a Beam')
+plt.xlabel('Position along beam (m)')
+plt.ylabel('Bending Moment (Nm)')
+plt.grid(True)
+plt.legend()
+
+# Plot deflection
+plt.subplot(2, 1, 2)
+plt.plot(x_values, deflection_values, label='Deflection δ(x)', color='green')
+plt.xlabel('Position along beam (m)')
+plt.ylabel('Deflection (m)')
+plt.grid(True)
+plt.legend()
+
+plt.tight_layout()
+plt.show()
