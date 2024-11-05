@@ -1,0 +1,87 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# ノードの座標 (x, y)
+nodes = np.array([
+    [0, 0],
+    [1, 0],
+    [1, 1],
+    [0, 1]
+])
+
+# 要素の接続情報 (ノード1, ノード2, ヤング率, 断面積)
+elements = [
+    (0, 1, 210e9, 0.01),  # 要素 1
+    (1, 2, 210e9, 0.01),  # 要素 2
+    (2, 3, 210e9, 0.01),  # 要素 3
+    (3, 0, 210e9, 0.01),  # 要素 4
+    (0, 2, 210e9, 0.01)   # 要素 5 (対角)
+]
+
+# 荷重ベクトルの設定 (各ノードのx, y方向の荷重)
+F = np.zeros((len(nodes) * 2, 1))
+F[4] = -1000.0  # ノード2のy方向に1000Nの荷重
+
+# 剛性行列の初期化
+K = np.zeros((len(nodes) * 2, len(nodes) * 2))
+
+# 要素剛性行列の組み立て
+for element in elements:
+    node1, node2, E, A = element
+    x1, y1 = nodes[node1]
+    x2, y2 = nodes[node2]
+    L = np.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+    cos_theta = (x2 - x1) / L
+    sin_theta = (y2 - y1) / L
+    
+    k_local = (E * A / L) * np.array([
+        [cos_theta**2, cos_theta * sin_theta, -cos_theta**2, -cos_theta * sin_theta],
+        [cos_theta * sin_theta, sin_theta**2, -cos_theta * sin_theta, -sin_theta**2],
+        [-cos_theta**2, -cos_theta * sin_theta, cos_theta**2, cos_theta * sin_theta],
+        [-cos_theta * sin_theta, -sin_theta**2, cos_theta * sin_theta, sin_theta**2]
+    ])
+    
+    # グローバル剛性行列への組み込み
+    indices = [node1 * 2, node1 * 2 + 1, node2 * 2, node2 * 2 + 1]
+    for i in range(4):
+        for j in range(4):
+            K[indices[i], indices[j]] += k_local[i, j]
+
+# 支点の境界条件 (固定ノードを0に)
+for dof in [0, 1, 7]:  # ノード1のx, y方向とノード4のy方向を固定
+    K[dof, :] = 0
+    K[:, dof] = 0
+    K[dof, dof] = 1
+    F[dof] = 0
+
+# 変位の計算
+u = np.linalg.solve(K, F)
+
+# 各要素の応力の計算
+for element in elements:
+    node1, node2, E, A = element
+    x1, y1 = nodes[node1]
+    x2, y2 = nodes[node2]
+    L = np.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+    cos_theta = (x2 - x1) / L
+    sin_theta = (y2 - y1) / L
+    u_local = np.array([
+        u[node1 * 2][0], u[node1 * 2 + 1][0],
+        u[node2 * 2][0], u[node2 * 2 + 1][0]
+    ])
+    stress = (E / L) * np.dot([-cos_theta, -sin_theta, cos_theta, sin_theta], u_local)
+    print(f'Element {node1}-{node2} stress: {stress:.2f} Pa')
+
+# 結果のプロット
+plt.figure()
+plt.plot(nodes[:, 0], nodes[:, 1], 'ko')
+for element in elements:
+    node1, node2, _, _ = element
+    x_values = [nodes[node1, 0], nodes[node2, 0]]
+    y_values = [nodes[node1, 1], nodes[node2, 1]]
+    plt.plot(x_values, y_values, 'b-o')
+plt.xlabel("X Position (m)")
+plt.ylabel("Y Position (m)")
+plt.title("Truss Structure")
+plt.grid()
+plt.show()
