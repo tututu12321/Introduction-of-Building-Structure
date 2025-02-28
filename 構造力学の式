@@ -1,0 +1,28 @@
+# 必要なライブラリのインポート
+import numpy as np
+
+# 物体の変形と弾性の基本的なパラメータ
+force = 1000  # 力 (ニュートン)
+area = 0.01   # 断面積 (平方メートル)
+original_length = 2.0  # 元の長さ (メートル)
+delta_length = 0.002  # 長さの変化量 (メートル)
+original_diameter = 0.05  # 元の直径 (メートル)
+delta_diameter = 0.0005  # 直径の変化量 (メートル)
+
+# 応力の計算 (stress)
+stress = force / area  # 単位: ニュートン/平方メートル (N/m^2)
+
+# ひずみの計算 (strain)
+strain = delta_length / original_length  # 無次元
+
+# ヤング率の計算 (Young's Modulus)
+youngs_modulus = stress / strain  # 単位: パスカル (Pa)
+
+# ポアソン比の計算 (Poisson's Ratio)
+poissons_ratio = - (delta_diameter / original_diameter)  # 無次元
+
+# 結果の表示
+print(f"応力 (Stress): {stress:.2f} N/m^2")
+print(f"ひずみ (Strain): {strain:.4f}")
+print(f"ヤング率 (Young's Modulus): {youngs_modulus:.2e} Pa")
+print(f"ポアソン比 (Poisson's Ratio): {poissons_ratio:.4f}")
