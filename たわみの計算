@@ -1,0 +1,43 @@
+
+# 必要なライブラリのインポート
+import numpy as np
+
+# 梁のたわみの計算 (Deflection of a Beam)
+def beam_deflection(F, L, E, I):
+    """
+    梁のたわみを計算する関数。
+    F: 荷重 (N)
+    L: 梁の長さ (m)
+    E: ヤング率 (Pa)
+    I: 梁の断面二次モーメント (m^4)
+    """
+    return (F * L**3) / (3 * E * I)
+
+# トラス構造の荷重伝達 (Load Distribution in a Truss Structure)
+def truss_member_force(F_load, L_member, L_total):
+    """
+    トラス構造におけるメンバーの力を計算する関数。
+    F_load: 外部荷重 (N)
+    L_member: メンバーの長さ (m)
+    L_total: トラス全体の長さ (m)
+    """
+    return (F_load * L_member) / L_total
+
+# 例：梁のたわみを計算
+F = 5000  # 荷重 (N)
+L = 3.0   # 梁の長さ (m)
+E = 2.1e11  # ヤング率 (Pa)
+I = 8.0e-6  # 梁の断面二次モーメント (m^4)
+
+deflection = beam_deflection(F, L, E, I)
+
+# 例：トラス構造のメンバー力を計算
+F_load = 1000  # 外部荷重 (N)
+L_member = 2.0  # メンバーの長さ (m)
+L_total = 4.0  # トラス全体の長さ (m)
+
+truss_force = truss_member_force(F_load, L_member, L_total)
+
+# 結果の表示
+print(f"梁のたわみ (Deflection) = {deflection:.4e} m")
+print(f"トラス構造メンバーの力 (Truss Member Force) = {truss_force:.2f} N")
